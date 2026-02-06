@@ -3,10 +3,10 @@ import { GradeData, calculateSGPA } from "@/types/grades";
 
 // Direct Client-Side API Keys (Rotation Logic)
 const API_KEYS = [
-  "AIzaSyDJfLuhM-oha1lfepaO_iRXTh97lRe2xoM",
-  "AIzaSyBFgtYIWbxk_EWjD96BMSpaO_OojLVlKTA",
-  "AIzaSyAc2N9YRg7VVgC81PzSrTrISaDf7WrH8Fs",
-  "AIzaSyC_QqxmS80GDEP1Vv5AuaIHxqI1SMNPF3M"
+  "AIzaSyDfCcPS3IUidjld4fG0_4hYSHvDerT_LRA",
+  "AIzaSyAGsEopwXJ0X8vFxUNH_CTay9Xsjg2x6Do",
+  "AIzaSyCUlU4uiu-bris_4vfEkBLf6jnoQ79vgjw",
+  "AIzaSyApv8aq_DI2xkoQsO6TarNaMg_SIvYVdPc"
 ];
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
