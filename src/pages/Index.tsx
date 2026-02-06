@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { GraduationCap, Sparkles } from "lucide-react";
+import { GraduationCap, Sparkles, Linkedin, Instagram, Mail } from "lucide-react";
 import { ImageUploader } from "@/components/ImageUploader";
 import { GradeTable } from "@/components/GradeTable";
 import { SGPADisplay } from "@/components/SGPADisplay";
@@ -64,7 +64,7 @@ const Index = () => {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-secondary/20 to-primary/20 rounded-full blur-3xl" />
       </div>
 
-      <div className="relative container mx-auto px-4 py-8 max-w-5xl">
+      <div className="relative container mx-auto px-4 py-8 max-w-5xl flex flex-col min-h-screen">
         {/* Hero Section */}
         <header className="text-center mb-10 animate-fade-up">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 mb-4">
@@ -97,7 +97,7 @@ const Index = () => {
 
         {/* Results Section */}
         {courses.length > 0 && (
-          <div ref={resultRef} className="space-y-8">
+          <div ref={resultRef} className="space-y-8 flex-grow">
             {/* SGPA Display */}
             <section>
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
@@ -133,7 +133,7 @@ const Index = () => {
 
         {/* Empty State */}
         {courses.length === 0 && !isExtracting && (
-          <div className="text-center py-16 animate-fade-up">
+          <div className="text-center py-16 animate-fade-up flex-grow">
             <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
               <GraduationCap className="w-10 h-10 text-muted-foreground" />
             </div>
@@ -146,11 +146,50 @@ const Index = () => {
           </div>
         )}
 
-        {/* Footer */}
-        <footer className="mt-16 text-center text-sm text-muted-foreground">
-          <p>
-            10-point grading scale: O=10, A+=9, A=8, B+=7, B=6, C=5, S/P=4, F=0
-          </p>
+        {/* Modern Footer */}
+        <footer className="mt-20 py-8 border-t border-border/40 bg-background/50 backdrop-blur-sm rounded-t-3xl">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              
+              {/* Credits & Info */}
+              <div className="text-center md:text-left space-y-1.5">
+                <p className="font-semibold text-foreground">
+                  Designed & Developed by <span className="text-primary bg-primary/10 px-2 py-0.5 rounded-md">Harsh Potdar</span>
+                </p>
+              </div>
+
+              {/* Social Links */}
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://www.linkedin.com/in/harsh-potdar-25900933a/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-full bg-muted/50 text-muted-foreground hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 hover:scale-110 hover:shadow-lg transition-all duration-300"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                
+                <a
+                  href="https://www.instagram.com/harsh_potdar23/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-full bg-muted/50 text-muted-foreground hover:bg-pink-500/10 hover:text-pink-600 dark:hover:text-pink-400 hover:scale-110 hover:shadow-lg transition-all duration-300"
+                  aria-label="Instagram"
+                >
+                  <Instagram className="w-5 h-5" />
+                </a>
+
+                <a
+                  href="mailto:harshpotdar023@gmail.com"
+                  className="p-2.5 rounded-full bg-muted/50 text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 hover:scale-110 hover:shadow-lg transition-all duration-300"
+                  aria-label="Email"
+                >
+                  <Mail className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+          </div>
         </footer>
       </div>
     </div>

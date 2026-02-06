@@ -1,56 +1,72 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { GradeData, SGPAResult } from "@/types/grades";
+import { GradeData } from "@/types/grades";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 
-export function useGradeExtraction() {
+export const useGradeExtraction = () => {
   const [isExtracting, setIsExtracting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  const extractGrades = async (imageFile: File): Promise<SGPAResult | null> => {
+  const extractGrades = async (file: File) => {
     setIsExtracting(true);
-    setProgress(10);
     setError(null);
+    setProgress(10);
 
     try {
-      // Convert file to base64
-      const base64 = await fileToBase64(imageFile);
-      setProgress(30);
-
-      console.log("Sending image for extraction...");
-      
-      // Call the edge function
-      const { data, error: fnError } = await supabase.functions.invoke("extract-grades", {
-        body: { imageBase64: base64 },
+      // 1. Convert image to Base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
       });
 
-      setProgress(80);
+      setProgress(40);
 
-      if (fnError) {
-        throw new Error(fnError.message || "Failed to extract grades");
+      // 2. Invoke the Edge Function
+      const { data, error: invokeError } = await supabase.functions.invoke('extract-grades', {
+        body: { image: base64 },
+      });
+
+      // 3. Handle Errors
+      if (invokeError) {
+        console.error("Supabase Function Error:", invokeError);
+
+        // Check for Rate Limit (HTTP 429)
+        // This covers both Supabase platform limits and custom 429 responses
+        const isRateLimit = 
+          invokeError.status === 429 || 
+          (invokeError instanceof FunctionsHttpError && invokeError.context?.status === 429);
+
+        if (isRateLimit) {
+          throw new Error("due to high request the services is shut down for bit of time , try later");
+        }
+
+        // Handle other specific Edge Function errors
+        if (invokeError instanceof FunctionsHttpError) {
+          const details = await invokeError.context.json().catch(() => ({}));
+          throw new Error(details.error || "Failed to process image");
+        }
+        
+        throw invokeError;
       }
 
-      if (!data.success) {
-        throw new Error(data.error || "Failed to extract grade data");
+      if (!data) {
+        throw new Error("No data received from extraction service");
       }
 
       setProgress(100);
+      return data as { courses: GradeData[], sgpa: number };
 
-      // Add unique IDs to courses
-      const coursesWithIds: GradeData[] = data.data.courses.map((course: Omit<GradeData, "id">, index: number) => ({
-        ...course,
-        id: `course-${index}-${Date.now()}`,
-      }));
+    } catch (err: any) {
+      console.error("Extraction process failed:", err);
+      
+      // Use the custom message if it was thrown above, otherwise default
+      const errorMessage = err.message === "due to high request the services is shut down for bit of time , try later"
+        ? err.message
+        : (err.message || "Failed to extract grades. Please try again.");
 
-      return {
-        courses: coursesWithIds,
-        totalCredits: data.data.totalCredits,
-        totalGradePoints: data.data.totalGradePoints,
-        sgpa: data.data.sgpa,
-      };
-    } catch (err) {
-      console.error("Extraction error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to extract grades";
       setError(errorMessage);
       return null;
     } finally {
@@ -59,18 +75,4 @@ export function useGradeExtraction() {
   };
 
   return { extractGrades, isExtracting, progress, error };
-}
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Remove the data URL prefix to get just the base64 string
-      const base64 = result.split(",")[1];
-      resolve(base64);
-    };
-    reader.onerror = (error) => reject(error);
-  });
-}
+};

@@ -35,21 +35,30 @@ export const GRADE_VALUES: Record<string, number> = {
 
 export const GRADE_OPTIONS = Object.keys(GRADE_VALUES);
 
-export function calculateSGPA(courses: GradeData[]): { totalCredits: number; totalGradePoints: number; sgpa: number } {
-  let totalCredits = 0;
-  let totalGradePoints = 0;
-
-  for (const course of courses) {
-    totalCredits += course.credits || 0;
-    totalGradePoints += course.gradePoints || 0;
-  }
-
-  const sgpa = totalCredits > 0 ? Math.round((totalGradePoints / totalCredits) * 100) / 100 : 0;
-
-  return { totalCredits, totalGradePoints, sgpa };
+export function getGradePoints(grade: string): number {
+  return GRADE_VALUES[grade?.toUpperCase()] || 0;
 }
 
-export function getGradePoints(credits: number, grade: string): number {
-  const gradeValue = GRADE_VALUES[grade.toUpperCase()] || 0;
-  return credits * gradeValue;
+export function calculateSGPA(courses: GradeData[]): { totalCredits: number; totalGradePoints: number; sgpa: number } {
+  let totalCredits = 0;
+  let sumWeightedPoints = 0;
+
+  for (const course of courses) {
+    const credits = course.credits || 0;
+    // Get numeric value for the letter grade (e.g., 'A' = 8)
+    const gradeValue = GRADE_VALUES[course.grade?.toUpperCase()] || 0;
+    
+    totalCredits += credits;
+    // Standard Formula: Sum of (Credits * Grade Value)
+    sumWeightedPoints += (credits * gradeValue);
+  }
+
+  // Final SGPA = Sum(Credits * Grade Value) / Total Credits
+  const sgpa = totalCredits > 0 ? Math.round((sumWeightedPoints / totalCredits) * 100) / 100 : 0;
+
+  return { 
+    totalCredits, 
+    totalGradePoints: sumWeightedPoints, // Renamed for clarity in UI
+    sgpa 
+  };
 }

@@ -24,26 +24,30 @@ export function GradePredictor({ existingCourses }: GradePredictorProps) {
     { id: "future-1", courseName: "Future Course 1", credits: 3, targetGrade: "A" },
   ]);
 
-  // Calculate current totals
-  const currentCredits = existingCourses.reduce((sum, c) => sum + c.credits, 0);
-  const currentGradePoints = existingCourses.reduce((sum, c) => sum + c.gradePoints, 0);
-
-  // Calculate future totals
-  const futureCredits = futureCourses.reduce((sum, c) => sum + c.credits, 0);
-  const futureGradePoints = futureCourses.reduce(
-    (sum, c) => sum + c.credits * (GRADE_VALUES[c.targetGrade] || 0),
+  // REFINED CALCULATION: Dynamically sum (Credits * Grade Value) for existing courses
+  // This ensures accuracy even if the user manually edited the table
+  const currentCredits = existingCourses.reduce((sum, c) => sum + (Number(c.credits) || 0), 0);
+  const currentWeightedPoints = existingCourses.reduce(
+    (sum, c) => sum + ((Number(c.credits) || 0) * (GRADE_VALUES[c.grade?.toUpperCase()] || 0)),
     0
   );
 
-  // Combined SGPA
+  // Calculate future totals based on user targets
+  const futureCredits = futureCourses.reduce((sum, c) => sum + (Number(c.credits) || 0), 0);
+  const futureWeightedPoints = futureCourses.reduce(
+    (sum, c) => sum + ((Number(c.credits) || 0) * (GRADE_VALUES[c.targetGrade?.toUpperCase()] || 0)),
+    0
+  );
+
+  // Combined Results following the standard SGPA formula
   const totalCredits = currentCredits + futureCredits;
-  const totalGradePoints = currentGradePoints + futureGradePoints;
+  const totalGradePoints = currentWeightedPoints + futureWeightedPoints;
   const predictedSGPA = totalCredits > 0 ? totalGradePoints / totalCredits : 0;
 
-  // Calculate required points for target
-  const requiredPoints = targetSGPA * totalCredits;
-  const pointsNeeded = requiredPoints - currentGradePoints;
-  const isAchievable = pointsNeeded <= futureCredits * 10;
+  // Achievability Logic: Compare points needed against maximum possible points (Credits * 10)
+  const requiredPointsTotal = targetSGPA * totalCredits;
+  const pointsNeededFromFuture = requiredPointsTotal - currentWeightedPoints;
+  const isAchievable = pointsNeededFromFuture <= (futureCredits * 10);
 
   const addCourse = () => {
     setFutureCourses([
@@ -78,7 +82,7 @@ export function GradePredictor({ existingCourses }: GradePredictorProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Target SGPA */}
+        {/* Target SGPA Input */}
         <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
@@ -102,7 +106,7 @@ export function GradePredictor({ existingCourses }: GradePredictorProps) {
           </div>
         </div>
 
-        {/* Future Courses */}
+        {/* Future Courses List */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-medium">Future/Hypothetical Courses</h4>
@@ -167,7 +171,7 @@ export function GradePredictor({ existingCourses }: GradePredictorProps) {
           </div>
         </div>
 
-        {/* Prediction Results */}
+        {/* Prediction Results Display */}
         <div className="space-y-3">
           <h4 className="text-sm font-medium flex items-center gap-2">
             <Calculator className="w-4 h-4 text-secondary" />
@@ -181,7 +185,7 @@ export function GradePredictor({ existingCourses }: GradePredictorProps) {
               </p>
               <p className="text-2xl font-bold text-primary">
                 {currentCredits > 0
-                  ? (currentGradePoints / currentCredits).toFixed(2)
+                  ? (currentWeightedPoints / currentCredits).toFixed(2)
                   : "0.00"}
               </p>
             </div>
