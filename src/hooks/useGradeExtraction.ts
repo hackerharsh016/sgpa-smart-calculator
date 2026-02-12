@@ -2,12 +2,10 @@ import { useState } from "react";
 import { GradeData, calculateSGPA } from "@/types/grades";
 
 // Direct Client-Side API Keys (Rotation Logic)
-const API_KEYS = [
-  "AIzaSyDfCcPS3IUidjld4fG0_4hYSHvDerT_LRA",
-  "AIzaSyAGsEopwXJ0X8vFxUNH_CTay9Xsjg2x6Do",
-  "AIzaSyCUlU4uiu-bris_4vfEkBLf6jnoQ79vgjw",
-  "AIzaSyApv8aq_DI2xkoQsO6TarNaMg_SIvYVdPc"
-];
+const API_KEYS = (import.meta.env.VITE_GEMINI_API_KEYS || "")
+  .split(",")
+  .map((key: string) => key.trim())
+  .filter((key: string) => key.length > 0);
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
